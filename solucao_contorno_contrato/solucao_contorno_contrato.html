@@ -347,7 +347,6 @@
         </tbody>
     </table>
 
-
     <!-- Modal -->
     <div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
         <div class="modal-dialog">
@@ -379,7 +378,6 @@
     let globalSupplierName = '';
 
     // GERAR E RECEBER TOKEN
-
     const getToken = async () => {
         try {
             const response = await axios.post('https://equatorialenergia-test.coupahost.com/oauth2/token', null, {
@@ -443,9 +441,20 @@
 
     // ENVIA OS DADOS VIA INPUTS DA TABELA E CRIA UM NOVO ITEM
     const createItem = async (itemId, inputRow) => {
+
         const itemIdii = inputRow.querySelector('.item-idii').value;
+        const availability = inputRow.querySelector('.item-availability').value;
         const currencyCode = inputRow.querySelector('.item-currency').value;
         const price = inputRow.querySelector('.item-price').value;
+        const mestreDeServicoDescription = inputRow.querySelector('.item-mestreDeServico').value;
+        const origemDoMaterialName = inputRow.querySelector('.item-origemDoMaterial').value;
+        const tipoDeAvaliacaoName = inputRow.querySelector('.item-tipoDeAvaliacao').value;
+        const numeroItemSapName = inputRow.querySelector('.item-numeroItemSap').value;
+        const empresaDoContratoName = inputRow.querySelector('.item-empresaDoContrato').value;
+        const controleDeConfirmacaoBool = inputRow.querySelector('.item-controleDeConfirmação').value;
+        
+        // const ncmNumeracao = inputRow.querySelector('.item-ncm').value;
+        // const ivaNumeracao = inputRow.querySelector('.item-iva').value;
 
         try {
             const token = await getToken();
@@ -453,6 +462,7 @@
                 item: {
                     id: itemIdii
                 },
+                availability: availability,
                 supplier: {
                     name: globalSupplierName
                 },
@@ -462,7 +472,39 @@
                 price: price,
                 contract: {
                     name: globalContractName
-                }
+                },
+                custom_fields: [
+                    {
+                        ["origem-do-material"]: {
+                            name: origemDoMaterialName
+                        }
+                    },
+                    {
+                        ["tipo-de-avaliacao"]: {
+                            name: tipoDeAvaliacaoName
+                        }
+                    },
+                    {
+                        ["empresa-do-contrato"]: {
+                            name: empresaDoContratoName
+                        }
+                    },
+                    {
+                        ["mestre_de_servico"]: {
+                            name: mestreDeServicoDescription
+                        }
+                    },
+                    {
+                        ["numero-item-sap"]: {
+                            name: numeroItemSapName
+                        }
+                    },
+                    {
+                        ["controle-confirmacao"]: {
+                            name: controleDeConfirmacaoBool
+                        }
+                    },
+                ]
             }, {
                 headers: {
                     Authorization: `Bearer ${token}`,
@@ -488,7 +530,6 @@
         const itemList = document.getElementById('itemList');
         itemList.innerHTML = '';
 
-        // Cria a linha de cabeçalho com os novos campos
         const headerRow = document.createElement('tr');
         const headers = [
             ' ', 'Nome do Item', 'Preço', 'Moeda', 'Origem do Material', 'Availability','NCM', 'IVA',
@@ -502,11 +543,9 @@
         });
         itemList.appendChild(headerRow);
 
-        // Cria uma linha para cada item
         items.forEach((item, index) => {
             const row = document.createElement('tr');
 
-            // Preenche cada célula com o valor correspondente de `filteredItems`
             const cellData = [
                 index + 1,
                 item.itemName ?? 'N/A',
@@ -527,8 +566,6 @@
                 item.contract ?? 'N/A'
             ];
 
-            console.log(cellData)
-
             cellData.forEach(data => {
                 const td = document.createElement('td');
                 td.textContent = data;
@@ -544,7 +581,6 @@
     // BOTÃO QUE CRIA INPUT NA TABELA
     const addCreateInputButton = (itemList) => {
         const buttonRow = document.createElement('tr');
-
         const actionCell = document.createElement('td');
         actionCell.colSpan = 7;
         const addButton = document.createElement('button');
@@ -563,13 +599,23 @@
 
         inputRow.innerHTML = `
         <td><input type="text" placeholder="   *    "></td>
-        <td><input for="validationDefault01" type="text" class="item-idii" placeholder="Item ID"></td>
-        <td><input type="text" class="item-currency" placeholder="Currency Code"></td>
+        <td><input type="text" class="item-nomeDoItem" placeholder="Nome do Item"></td>
         <td><input type="text" class="item-price" placeholder="Price"></td>
-        <td><input type="text" class="item-supplier" placeholder="Supplier" value="${globalSupplierName}" disabled></td>
-        <td><input type="text" class="item-contract-name" placeholder="Contract Name" value="${globalContractName}" disabled></td>
-        <td><button class="btn btn-primary create-item-button">Criar Item</button></td>
-    `;
+        <td><input type="text" class="item-currency" placeholder="Currency Code"></td>
+        <td><input type="text" class="item-origemDoMaterial" placeholder="Origem do Material"></td>
+        <td><input type="text" class="item-availability" placeholder="Disponibilidade"></td>
+        <td><input type="text" class="item-ncm" placeholder="NCM"></td>
+        <td><input type="text" class="item-iva" placeholder="IVA"></td>
+        <td><input type="text" class="item-tipoDeAvaliacao" placeholder="Tipo de Avaliação"></td>
+        <td><input type="text" class="item-empresaDoContrato" placeholder="Empresa do Contrato"></td>
+        <td><input type="text" class="item-mestreDeServico" placeholder="Mestre de Serviços"></td>
+        <td><input type="text" class="item-numeroItemSap" placeholder="Número Item SAP"></td>
+        <td><input type="text" class="item-nomeItemSap" placeholder="Nome Item SAP"></td>
+        <td><input type="text" class="item-controleDeConfirmação" placeholder="Controle de Confirmação"></td>
+        <td><input for="validationDefault01" type="text" class="item-idii" placeholder="Item ID"></td>
+        <td><input type="text" class="item-supplier" placeholder="Fornecedor" value="${globalSupplierName}" disabled></td>
+        <td><input type="text" class="item-contract-name" placeholder="Nome do Contrato" value="${globalContractName}" disabled></td>
+        <td><button class="btn btn-primary create-item-button">Criar Item</button></td>`;
 
         itemList.appendChild(inputRow);
 
