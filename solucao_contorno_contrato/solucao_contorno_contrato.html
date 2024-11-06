@@ -445,22 +445,25 @@
         const itemIdii = inputRow.querySelector('.item-idii').value;
         const availability = inputRow.querySelector('.item-availability').value;
         const currencyCode = inputRow.querySelector('.item-currency').value;
+        const itemNameName = inputRow.querySelector('.item-nomeDoItem').value;
         const price = inputRow.querySelector('.item-price').value;
+        const ncmNumberItem = inputRow.querySelector('.item-ncm').value;
+        const ivaNumberItem = inputRow.querySelector('.item-iva').value;
         const mestreDeServicoDescription = inputRow.querySelector('.item-mestreDeServico').value;
         const origemDoMaterialName = inputRow.querySelector('.item-origemDoMaterial').value;
         const tipoDeAvaliacaoName = inputRow.querySelector('.item-tipoDeAvaliacao').value;
         const numeroItemSapName = inputRow.querySelector('.item-numeroItemSap').value;
         const empresaDoContratoName = inputRow.querySelector('.item-empresaDoContrato').value;
         const controleDeConfirmacaoBool = inputRow.querySelector('.item-controleDeConfirmação').value;
-        
-        // const ncmNumeracao = inputRow.querySelector('.item-ncm').value;
-        // const ivaNumeracao = inputRow.querySelector('.item-iva').value;
 
         try {
             const token = await getToken();
             const response = await axios.post(`https://equatorialenergia-test.coupahost.com/api/items/${itemId}/supplier_items`, {
                 item: {
                     id: itemIdii
+                },
+                item: {
+                    name: itemNameName
                 },
                 availability: availability,
                 supplier: {
@@ -474,6 +477,12 @@
                     name: globalContractName
                 },
                 custom_fields: [
+                    {
+                        ncm: ncmNumberItem
+                    },
+                    {
+                        iva: ivaNumberItem
+                    },
                     {
                         ["origem-do-material"]: {
                             name: origemDoMaterialName
