@@ -442,78 +442,64 @@
     // ENVIA OS DADOS VIA INPUTS DA TABELA E CRIA UM NOVO ITEM
     const createItem = async (itemId, inputRow) => {
 
-        const itemIdii = inputRow.querySelector('.item-idii').value;
-        const availability = inputRow.querySelector('.item-availability').value;
+        const priceName = inputRow.querySelector('.item-price').value;
         const currencyCode = inputRow.querySelector('.item-currency').value;
-        const itemNameName = inputRow.querySelector('.item-nomeDoItem').value;
-        const price = inputRow.querySelector('.item-price').value;
+        const itemNameId = inputRow.querySelector('.item-nomeDoItem').value;
+        const availabilityName = inputRow.querySelector('.item-availability').value;
+        const origemDoMaterialName = inputRow.querySelector('.item-origemDoMaterial').value;
         const ncmNumberItem = inputRow.querySelector('.item-ncm').value;
         const ivaNumberItem = inputRow.querySelector('.item-iva').value;
-        const mestreDeServicoDescription = inputRow.querySelector('.item-mestreDeServico').value;
-        const origemDoMaterialName = inputRow.querySelector('.item-origemDoMaterial').value;
         const tipoDeAvaliacaoName = inputRow.querySelector('.item-tipoDeAvaliacao').value;
+        const tolerancia = inputRow.querySelector('.item-tolerancia').value;
         const numeroItemSapName = inputRow.querySelector('.item-numeroItemSap').value;
         const empresaDoContratoName = inputRow.querySelector('.item-empresaDoContrato').value;
+        const caderno = inputRow.querySelector('.item-caderno').value;
+        const mestreDeServicoDescription = inputRow.querySelector('.item-mestreDeServico').value;
         const controleDeConfirmacaoBool = inputRow.querySelector('.item-controleDeConfirmação').value;
 
         try {
             const token = await getToken();
             const response = await axios.post(`https://equatorialenergia-test.coupahost.com/api/items/${itemId}/supplier_items`, {
-                item: {
-                    id: itemIdii
-                },
-                item: {
-                    name: itemNameName
-                },
-                availability: availability,
-                supplier: {
-                    name: globalSupplierName
-                },
+                price: priceName,
                 currency: {
                     code: currencyCode
                 },
-                price: price,
-                contract: {
-                    name: globalContractName
+                supplier: {
+                    number: globalSupplierName
                 },
-                custom_fields: [
-                    {
-                        ncm: ncmNumberItem
+                contract: {
+                    number: globalContractName
+                },
+                item: {
+                    id: itemNameId
+                },
+                availability: availabilityName,
+                custom_fields: {
+                    "origem-do-material": {
+                        "external-ref-num": origemDoMaterialName
                     },
-                    {
-                        iva: ivaNumberItem
+                    ncm: ncmNumberItem,
+                    iva: {
+                        "external-ref-num": ivaNumberItem
                     },
-                    {
-                        ["origem-do-material"]: {
-                            name: origemDoMaterialName
-                        }
+                    "tipo-de-avaliacao": {
+                       "external-ref-num":tipoDeAvaliacaoName
                     },
-                    {
-                        ["tipo-de-avaliacao"]: {
-                            name: tipoDeAvaliacaoName
-                        }
+                    tolerancia: {
+                        "external-ref-num": tolerancia
                     },
-                    {
-                        ["empresa-do-contrato"]: {
-                            name: empresaDoContratoName
-                        }
+                    "numero-item-sap": {
+                        name: numeroItemSapName
                     },
-                    {
-                        ["mestre_de_servico"]: {
-                            name: mestreDeServicoDescription
-                        }
+                    "empresa-do-contrato": {
+                        name: empresaDoContratoName
                     },
-                    {
-                        ["numero-item-sap"]: {
-                            name: numeroItemSapName
-                        }
+                    caderno: caderno,
+                    "mestre-de-servico": {
+                        "external-ref-code": mestreDeServicoDescription
                     },
-                    {
-                        ["controle-confirmacao"]: {
-                            name: controleDeConfirmacaoBool
-                        }
-                    },
-                ]
+                    "controle-confirmacao":  controleDeConfirmacaoBool
+                }
             }, {
                 headers: {
                     Authorization: `Bearer ${token}`,
@@ -529,7 +515,7 @@
                 throw new Error('Erro ao criar o item. Status do código: ' + response.status);
             }
         } catch (error) {
-            console.error('Error while creating item:', error.message);
+            console.error('Erro ao criar o item:', error.message);
             throw error;
         }
     };
@@ -619,7 +605,7 @@
         <td><input type="text" class="item-empresaDoContrato" placeholder="Empresa do Contrato"></td>
         <td><input type="text" class="item-mestreDeServico" placeholder="Mestre de Serviços"></td>
         <td><input type="text" class="item-numeroItemSap" placeholder="Número Item SAP"></td>
-        <td><input type="text" class="item-nomeItemSap" placeholder="Nome Item SAP"></td>
+        <td><input type="text" class="item-caderno" placeholder="Nome Item SAP"></td>
         <td><input type="text" class="item-controleDeConfirmação" placeholder="Controle de Confirmação"></td>
         <td><input for="validationDefault01" type="text" class="item-idii" placeholder="Item ID"></td>
         <td><input type="text" class="item-supplier" placeholder="Fornecedor" value="${globalSupplierName}" disabled></td>
@@ -686,6 +672,8 @@
             addCreateInputButton(itemList);
         }
     });
+
+
 
 </script>
 </body>
