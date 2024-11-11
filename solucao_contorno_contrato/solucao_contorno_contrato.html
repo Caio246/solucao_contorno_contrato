@@ -444,7 +444,7 @@
 
         const priceName = inputRow.querySelector('.item-price').value;
         const currencyCode = inputRow.querySelector('.item-currency').value;
-        const itemNameId = inputRow.querySelector('.item-nomeDoItem').value;
+        const itemNameId = inputRow.querySelector('.item-idDoItem').value;
         const availabilityName = inputRow.querySelector('.item-availability').value;
         const origemDoMaterialName = inputRow.querySelector('.item-origemDoMaterial').value;
         const ncmNumberItem = inputRow.querySelector('.item-ncm').value;
@@ -465,10 +465,10 @@
                     code: currencyCode
                 },
                 supplier: {
-                    number: globalSupplierName
+                    name: globalSupplierName
                 },
                 contract: {
-                    number: globalContractName
+                    name: globalContractName
                 },
                 item: {
                     id: itemNameId
@@ -489,10 +489,10 @@
                         "external-ref-num": tolerancia
                     },
                     "numero-item-sap": {
-                        name: numeroItemSapName
+                        "external-ref-num": numeroItemSapName
                     },
                     "empresa-do-contrato": {
-                        name: empresaDoContratoName
+                        "external-ref-num": empresaDoContratoName
                     },
                     caderno: caderno,
                     "mestre-de-servico": {
@@ -528,7 +528,7 @@
         const headerRow = document.createElement('tr');
         const headers = [
             ' ', 'Nome do Item', 'Preço', 'Moeda', 'Origem do Material', 'Availability','NCM', 'IVA',
-            'Tipo de Avaliação', 'Empresa do Contrato', 'Mestre de Serviço', 'Número Item SAP', 'Nome Item SAP',
+            'Tipo de Avaliação', 'Empresa do Contrato', 'Mestre de Serviço', 'Número Item SAP', 'Nome Item SAP (caderno)',
             'Controle Confirmação', 'Item number (Item ID)', 'Fornecedor', 'Contract Name'
         ];
         headers.forEach(header => {
@@ -594,7 +594,7 @@
 
         inputRow.innerHTML = `
         <td><input type="text" placeholder="   *    "></td>
-        <td><input type="text" class="item-nomeDoItem" placeholder="Nome do Item"></td>
+        <td><input type="text" class="item-idDoItem" placeholder="Item ID"></td>
         <td><input type="text" class="item-price" placeholder="Price"></td>
         <td><input type="text" class="item-currency" placeholder="Currency Code"></td>
         <td><input type="text" class="item-origemDoMaterial" placeholder="Origem do Material"></td>
@@ -602,15 +602,23 @@
         <td><input type="text" class="item-ncm" placeholder="NCM"></td>
         <td><input type="text" class="item-iva" placeholder="IVA"></td>
         <td><input type="text" class="item-tipoDeAvaliacao" placeholder="Tipo de Avaliação"></td>
+        <td><input type="text" class="item-tolerancia" placeholder="Tolerancia"></td>
         <td><input type="text" class="item-empresaDoContrato" placeholder="Empresa do Contrato"></td>
         <td><input type="text" class="item-mestreDeServico" placeholder="Mestre de Serviços"></td>
         <td><input type="text" class="item-numeroItemSap" placeholder="Número Item SAP"></td>
-        <td><input type="text" class="item-caderno" placeholder="Nome Item SAP"></td>
+        <td><input type="text" class="item-caderno" placeholder="Nome Item SAP (Caderno)"></td>
         <td><input type="text" class="item-controleDeConfirmação" placeholder="Controle de Confirmação"></td>
-        <td><input for="validationDefault01" type="text" class="item-idii" placeholder="Item ID"></td>
         <td><input type="text" class="item-supplier" placeholder="Fornecedor" value="${globalSupplierName}" disabled></td>
         <td><input type="text" class="item-contract-name" placeholder="Nome do Contrato" value="${globalContractName}" disabled></td>
         <td><button class="btn btn-primary create-item-button">Criar Item</button></td>`;
+
+        const actionCell = document.createElement('td');
+        const deleteButton = document.createElement('button');
+        deleteButton.textContent = '-';
+        deleteButton.classList.add('btn', 'btn-info', 'btn-circle', 'btn-lg');
+        deleteButton.onclick = () => inputRow.remove();
+        actionCell.appendChild(deleteButton);
+        inputRow.appendChild(actionCell);
 
         itemList.appendChild(inputRow);
 
@@ -672,8 +680,6 @@
             addCreateInputButton(itemList);
         }
     });
-
-
 
 </script>
 </body>
