@@ -520,6 +520,43 @@
         }
     };
 
+    // Função updateItem refatorada para lidar com as entradas
+    const updateItem = async (itemId, inputRow) => {
+        const inputs = inputRow.querySelectorAll('input'); // Selecionar todos os inputs na linha
+
+        // Verificar se todos os campos de entrada estão presentes antes de acessar
+        const data = {};
+
+        inputs.forEach((input, i) => {
+            if (input) {
+                const className = input.classList[0]; // Pega a classe do input para mapear
+                const fieldName = className.replace('item-', ''); // Extrai o nome do campo da classe (por exemplo, 'item-price' -> 'price')
+                data[fieldName] = input.value;
+            }
+        });
+
+        // Enviar os dados para a API (ajuste conforme sua API)
+        try {
+            const token = await getToken(); // Assumindo que você tenha a função para obter o token de autenticação
+            const response = await axios.put(`https://equatorialenergia-test.coupahost.com/api/items/${itemId}/supplier_items`, data, {
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                    Accept: 'application/json',
+                    'Content-Type': 'application/json'
+                }
+            });
+
+            if (response.status === 200) {
+                return response.data;
+            } else {
+                throw new Error('Erro ao atualizar o item. Status do código: ' + response.status);
+            }
+        } catch (error) {
+            console.error('Erro ao atualizar o item:', error.message);
+            throw error;
+        }
+    };
+
     // RENDERIZA A TABELA DO TBODY DE ACORDO COM OS DADOS DO CONTRACT ITEM
     const displayItems = (items) => {
         const itemList = document.getElementById('itemList');
@@ -527,9 +564,9 @@
 
         const headerRow = document.createElement('tr');
         const headers = [
-            ' ', 'Nome do Item', 'Preço', 'Moeda', 'Origem do Material', 'Availability','NCM', 'IVA',
+            ' ', 'Nome do Item', 'Preço', 'Moeda', 'Origem do Material', 'Availability', 'NCM', 'IVA',
             'Tipo de Avaliação', 'Empresa do Contrato', 'Mestre de Serviço', 'Número Item SAP', 'Nome Item SAP (caderno)',
-            'Controle Confirmação', 'Item number (Item ID)', 'Fornecedor', 'Contract Name'
+            'Controle Confirmação', 'Item number (Item ID)', 'Fornecedor', 'Contract Name', 'Ações'
         ];
         headers.forEach(header => {
             const th = document.createElement('th');
@@ -561,23 +598,88 @@
                 item.contract ?? 'N/A'
             ];
 
-            cellData.forEach(data => {
+            cellData.forEach((data, idx) => {
                 const td = document.createElement('td');
                 td.textContent = data;
                 row.appendChild(td);
+                td.dataset.originalValue = data; // Guardar valor original para edição posterior
             });
 
+            const actionsTd = document.createElement('td');
+            const editButton = document.createElement('button');
+            editButton.textContent = 'Editar';
+            actionsTd.appendChild(editButton);
+            row.appendChild(actionsTd);
+
             itemList.appendChild(row);
+
+            // Adiciona evento de clique no botão Editar
+            editButton.addEventListener('click', () => {
+                const tds = row.querySelectorAll('td:not(:last-child)'); // Ignorar a última célula (Ações)
+
+                tds.forEach((td, i) => {
+                    const originalValue = td.dataset.originalValue;
+                    const input = document.createElement('input');
+
+                    switch(i) {
+                        case 1:  // Nome do Item
+                        case 15: // Fornecedor
+                        case 16: // Contract Name
+                            // Criar um span para mostrar texto (não editável)
+                            const span = document.createElement('span');
+                            span.textContent = originalValue;
+                            td.textContent = '';
+                            td.appendChild(span);
+                            return; // Ignorar este campo
+                        default:
+                            input.value = originalValue;
+                            input.classList.add(`item-${getFieldClass(i)}`);
+                            td.textContent = ''; // Limpar o conteúdo da célula
+                            td.appendChild(input);
+                            break;
+                    }
+                });
+
+                editButton.textContent = 'Salvar';
+
+                // Refatorando a função de salvar para não usar arguments.callee
+                editButton.removeEventListener('click', editButton.onclick); // Remover evento anterior
+
+                // Função de salvar
+                editButton.onclick = async () => {
+                    const inputRow = row;
+                    const itemId = item.itemNumber; // ou qualquer outra propriedade de ID exclusiva do item
+
+                    try {
+                        // Atualizar item, agora com verificação
+                        const updatedItem = await updateItem(itemId, inputRow);
+                        alert('Item atualizado com sucesso!');
+                        getItems(itemId); // Ou outra função para recarregar os itens
+                    } catch (error) {
+                        alert('Erro ao atualizar o item: ' + error.message);
+                    }
+                };
+            });
         });
 
-        addCreateInputButton(itemList);
+        addCreateInputButton(itemList); // Adicionar botão de nova linha
+    };
+
+    // Função auxiliar para determinar a classe do campo
+    const getFieldClass = (index) => {
+        const fieldClasses = [
+            'name', 'price', 'currency', 'origemDoMaterial', 'availability', 'ncm', 'iva',
+            'tipoDeAvaliacao', 'tolerancia', 'numeroItemSap', 'empresaDoContrato', 'caderno',
+            'mestreDeServico', 'controleDeConfirmação', 'idDoItem'
+        ];
+        return fieldClasses[index - 1] || '';
     };
 
     // BOTÃO QUE CRIA INPUT NA TABELA
     const addCreateInputButton = (itemList) => {
         const buttonRow = document.createElement('tr');
         const actionCell = document.createElement('td');
-        actionCell.colSpan = 7;
+        actionCell.colSpan = 7; // Ajuste para a quantidade de colunas
         const addButton = document.createElement('button');
         addButton.textContent = 'Adicionar Nova Linha de Input';
         addButton.classList.add('btn', 'btn-success');
@@ -593,7 +695,7 @@
         const inputRow = document.createElement('tr');
 
         inputRow.innerHTML = `
-        <td><input type="text" placeholder="   *    "></td>
+        <td><input type="text" placeholder="   *    " class="item-name" disabled></td>
         <td><input type="text" class="item-idDoItem" placeholder="Item ID"></td>
         <td><input type="text" class="item-price" placeholder="Price"></td>
         <td><input type="text" class="item-currency" placeholder="Currency Code"></td>
@@ -610,7 +712,8 @@
         <td><input type="text" class="item-controleDeConfirmação" placeholder="Controle de Confirmação"></td>
         <td><input type="text" class="item-supplier" placeholder="Fornecedor" value="${globalSupplierName}" disabled></td>
         <td><input type="text" class="item-contract-name" placeholder="Nome do Contrato" value="${globalContractName}" disabled></td>
-        <td><button class="btn btn-primary create-item-button">Criar Item</button></td>`;
+        <td><button class="btn btn-primary create-item-button">Criar Item</button></td>
+    `;
 
         const actionCell = document.createElement('td');
         const deleteButton = document.createElement('button');
