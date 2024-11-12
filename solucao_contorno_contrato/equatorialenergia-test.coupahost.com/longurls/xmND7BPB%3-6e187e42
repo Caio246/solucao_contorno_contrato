@@ -417,7 +417,7 @@
                     iva: item["custom-fields"]?.iva.description ?? 'N/A',
                     tipoDeAvaliacao: item["custom-fields"]?.['tipo-de-avaliacao'].name ?? 'N/A',
                     empresaDoContrato: item["custom-fields"]?.['empresa-do-contrato'].name ?? 'N/A',
-                    mestreDeServico: item["custom-fields"]?.['mestre-de-servico'].name ?? 'N/A',
+                    mestreServico: item["custom-fields"]?.['mestre-de-servico'].name ?? 'N/A',
                     numeroItemSap: item["custom-fields"]?.['numero-item-sap'].name ?? 'N/A',
                     nomeItemSap: item["custom-fields"]?.caderno ?? 'N/A',
                     conltroleConfirmacao: item["custom-fields"]?.['controle-confirmacao'] ?? false,
@@ -455,7 +455,7 @@
         const empresaDoContratoName = inputRow.querySelector('.item-empresaDoContrato').value;
         const caderno = inputRow.querySelector('.item-caderno').value;
         const mestreDeServicoDescription = inputRow.querySelector('.item-mestreDeServico').value;
-        const controleDeConfirmacao = inputRow.querySelector('.item-controleDeConfirmação').value;
+        const controleDeConfirmacaoBool = inputRow.querySelector('.item-controleDeConfirmação').value;
 
         try {
             const token = await getToken();
@@ -498,7 +498,7 @@
                     "mestre-de-servico": {
                         "external-ref-code": mestreDeServicoDescription
                     },
-                    "controle-confirmacao":  controleDeConfirmacao
+                    "controle-confirmacao":  controleDeConfirmacaoBool
                 }
             }, {
                 headers: {
@@ -521,23 +521,29 @@
     };
 
     // Função updateItem refatorada para lidar com as entradas
-    const updateItem = async (itemId, inputRow) => {
+    const updateItem = async (itemId, inputRow, originalData) => {
         const inputs = inputRow.querySelectorAll('input'); // Seleciona todos os inputs na linha
 
         // Inicializa o objeto data com a estrutura correta do payload
         const data = {
             availability: null,
+            contract: { number: globalContractName }, // Usa o valor global do contrato
             currency: { code: 'BRL' }, // Moeda padrão, pode ser alterado conforme necessário
             "custom-fields": {
                 caderno: null,
                 "controle-confirmacao": null,
+                "empresa-do-contrato": { "external-ref-num": null },
+                iva: { "external-ref-num": null },
                 "mestre-de-servico": { "external-ref-code": null },
                 ncm: null,
                 "numero-item-sap": { "external-ref-num": null },
+                "origem-do-material": { "external-ref-num": null },
                 "tipo-de-avaliacao": { "external-ref-num": null },
+                tolerancia: { "external-ref-num": null },
             },
-            itemNumber: { id: itemId }, // Preenche com o itemId recebido como parâmetro
+            item: { id: itemId }, // Preenche com o itemId recebido como parâmetro
             price: null, // Irá receber o valor correto na iteração dos inputs
+            supplier: { number: globalSupplierName } // Usa o valor global do fornecedor
         };
 
         // Mapeia cada campo do input para preencher o payload com os valores correspondentes
@@ -545,41 +551,61 @@
             const className = input.classList[0];
             const fieldName = className.replace('item-', ''); // Extrai o nome do campo da classe (ex. 'item-price' -> 'price')
 
-            // Mapeamento dos valores para os campos corretos no objeto data
-            switch (fieldName) {
-                case 'availability':
-                    data.availability = input.value;
-                    break;
-                case 'currency':
-                    data.currency.code = input.value || data.currency.code; // Define o código da moeda
-                    break;
-                case 'caderno':
-                    data["custom-fields"].caderno = input.value;
-                    break;
-                case 'controleDeConfirmacao':
-                    data["custom-fields"]["controle-confirmacao"] = input.value === 'true';
-                    break;
-                case 'mestreDeServico':
-                    data["custom-fields"]["mestre-de-servico"]["external-ref-code"] = input.value;
-                    break;
-                case 'ncm':
-                    data["custom-fields"].ncm = input.value;
-                    break;
-                case 'numeroItemSap':
-                    data["custom-fields"]["numero-item-sap"]["external-ref-num"] = input.value;
-                    break;
-                case 'tipoDeAvaliacao':
-                    data["custom-fields"]["tipo-de-avaliacao"]["external-ref-num"] = input.value;
-                    break;
-                case 'price':
-                    data.price = input.value || data.price; // Define o valor do preço, se disponível
-                    break;
-                default:
-                    console.warn(`Campo não mapeado: ${fieldName}`);
+            // Inicializa a variável de valor original para comparar
+            let originalValue = getOriginalValue(fieldName, originalData);
+
+            // Verifica se o campo foi alterado
+            const newValue = input.value || null;
+
+            if (newValue !== originalValue) {
+                // Mapeamento dos valores para os campos corretos no objeto data
+                switch (fieldName) {
+                    case 'availability':
+                        data.availability = newValue;
+                        break;
+                    case 'currency':
+                        data.currency.code = newValue || data.currency.code; // Define o código da moeda
+                        break;
+                    case 'caderno':
+                        data["custom-fields"].caderno = newValue;
+                        break;
+                    case 'controleConfirmacao':
+                        data["custom-fields"]["controle-confirmacao"] = newValue === 'true';
+                        break;
+                    case 'empresaDoContrato':
+                        data["custom-fields"]["empresa-do-contrato"]["external-ref-num"] = newValue;
+                        break;
+                    case 'iva':
+                        data["custom-fields"].iva["external-ref-num"] = newValue;
+                        break;
+                    case 'mestreServico':
+                        data["custom-fields"]["mestre-de-servico"]["external-ref-code"] = newValue;
+                        break;
+                    case 'ncm':
+                        data["custom-fields"].ncm = newValue;
+                        break;
+                    case 'numeroItemSap':
+                        data["custom-fields"]["numero-item-sap"]["external-ref-num"] = newValue;
+                        break;
+                    case 'origemDoMaterial':
+                        data["custom-fields"]["origem-do-material"]["external-ref-num"] = newValue;
+                        break;
+                    case 'tipoDeAvaliacao':
+                        data["custom-fields"]["tipo-de-avaliacao"]["external-ref-num"] = newValue;
+                        break;
+                    case 'tolerancia':
+                        data["custom-fields"].tolerancia["external-ref-num"] = newValue;
+                        break;
+                    case 'price':
+                        data.price = newValue; // Define o valor do preço, se disponível
+                        break;
+                    default:
+                        console.warn(`Campo não mapeado: ${fieldName}`);
+                }
             }
         });
 
-        // Enviar os dados para a API
+        // Enviar os dados para a API apenas com os campos alterados
         try {
             const token = await getToken(); // Obtém o token de autenticação
             const response = await axios.put(`https://equatorialenergia-test.coupahost.com/api/supplier_items/${itemId}`, data, {
@@ -599,7 +625,40 @@
             console.error('Erro ao atualizar o item:', error.message);
             throw error;
         }
+    };
 
+    // Função para obter o valor original do campo
+    const getOriginalValue = (fieldName, originalData) => {
+        switch (fieldName) {
+            case 'availability':
+                return originalData.availability;
+            case 'currency':
+                return originalData.currency.code;
+            case 'caderno':
+                return originalData["custom-fields"].caderno;
+            case 'controleConfirmacao':
+                return originalData["custom-fields"]["controle-confirmacao"];
+            case 'empresaDoContrato':
+                return originalData["custom-fields"]["empresa-do-contrato"]["external-ref-num"];
+            case 'iva':
+                return originalData["custom-fields"].iva["external-ref-num"];
+            case 'mestreServico':
+                return originalData["custom-fields"]["mestre-de-servico"]["external-ref-code"];
+            case 'ncm':
+                return originalData["custom-fields"].ncm;
+            case 'numeroItemSap':
+                return originalData["custom-fields"]["numero-item-sap"]["external-ref-num"];
+            case 'origemDoMaterial':
+                return originalData["custom-fields"]["origem-do-material"]["external-ref-num"];
+            case 'tipoDeAvaliacao':
+                return originalData["custom-fields"]["tipo-de-avaliacao"]["external-ref-num"];
+            case 'tolerancia':
+                return originalData["custom-fields"].tolerancia["external-ref-num"];
+            case 'price':
+                return originalData.price;
+            default:
+                return null;
+        }
     };
 
     // RENDERIZA A TABELA DO TBODY DE ACORDO COM OS DADOS DO CONTRACT ITEM
@@ -636,10 +695,10 @@
                 item.customFields?.iva ?? 'N/A',
                 item.customFields?.tipoDeAvaliacao ?? 'N/A',
                 item.customFields?.empresaDoContrato ?? 'N/A',
-                item.customFields?.mestreDeServico ?? 'N/A',
+                item.customFields?.mestreServico ?? 'N/A',
                 item.customFields?.numeroItemSap ?? 'N/A',
                 item.customFields?.nomeItemSap ?? 'N/A',
-                item.customFields?.controleDeConfirmacao ?? false,
+                item.customFields?.controleConfirmacao ?? false,
                 item.itemNumber ?? 'N/A',
                 item.supplier ?? 'N/A',
                 item.contract ?? 'N/A'
@@ -691,9 +750,9 @@
                 editButton.textContent = 'Salvar';
                 editButton.onclick = async () => {
                     try {
-                        const updatedItem = await updateItem(item.itemNumber, row); // Passando os dados do input
+                        const updatedItem = await updateItem(item.itemNumber, row);
                         alert('Item atualizado com sucesso!');
-                        getItems(item.itemNumber); // Atualizar a lista de itens
+                        getItems(item.itemNumber);
                     } catch (error) {
                         alert('Erro ao atualizar o item: ' + error.message);
                     }
@@ -708,7 +767,7 @@
     const getFieldClass = (index) => {
         const fieldClasses = [
             '', 'itemName', 'price', 'currency', 'origemDoMaterial', 'availability', 'ncm', 'iva',
-            'tipoDeAvaliacao', 'empresaDoContrato', 'mestreDeServico', 'numeroItemSap', 'caderno',
+            'tipoDeAvaliacao', 'empresaDoContrato', 'mestreServico', 'numeroItemSap', 'caderno',
             'controleDeConfirmacao', 'itemNumber', 'supplier', 'contract'
         ];
         return fieldClasses[index] || ''; // Índice corrigido
