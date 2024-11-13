@@ -415,12 +415,16 @@
                 customFields: {
                     origemDoMaterial: item["custom-fields"]?.["origem-do-material"]?.name ?? 'N/A',
                     ncmNumber: item["custom-fields"]?.ncm ?? 'N/A',
+                    iva: item["custom-fields"]?.iva ?? 'N/A',
+                    tipoDeAvaliacao: item["custom-fields"]?.["tipo-de-avaliacao"]?.name ?? 'N/A',
+                    numeroItemSap: item["custom-fields"]?.["numero-item-sap"]?.["external-ref-num"] ?? 'N/A',
+                    nomeItemSap: item.customFields?.caderno ?? 'N/A',
+                    conltroreConfirmacao: item.customFields?.['controle-confirmacao'] ?? false,
                 },
                 itemNumber: item.item?.id ?? 'N/A',
                 supplier: item.supplier?.name ?? 'N/A',
                 contract: item.contract?.name ?? 'N/A'
             }));
-
 
             if (filteredItems.length > 0) {
                 globalSupplierName = filteredItems[0].supplier;
@@ -520,7 +524,7 @@
         itemList.innerHTML = '';
 
         const headers = [
-            ' ', 'Nome do Item', 'Preço', 'Moeda', 'Disponibilidade', 'Origem do Material', 'NCM', 'IVA', 'Item number (Item ID)',
+            ' ', 'Nome do Item', 'Preço', 'Moeda', 'Disponibilidade', 'Origem do Material', 'NCM', 'IVA', 'Tipo de Avaliação', 'Número Item SAP', 'Item number (Item ID)',
             'Fornecedor', 'Contract Name', 'Ações'
         ];
 
@@ -542,8 +546,10 @@
                 item.currency ?? 'N/A',
                 item.availability ?? 'N/A',
                 item.customFields?.origemDoMaterial ?? 'N/A',
-                item.customFields?.ncm ?? 'N/A',
-                item.customFields?.iva ?? 'N/A',
+                item.customFields?.ncmNumber ?? 'N/A',
+                item.customFields?.iva.name ?? 'N/A',
+                item.customFields?.tipoDeAvaliacao ?? 'N/A',
+                item.customFields?.numeroItemSap ?? 'N/A',
                 item.itemNumber ?? 'N/A',
                 item.supplier ?? 'N/A',
                 item.contract ?? 'N/A'
@@ -554,7 +560,6 @@
                 td.textContent = data;
                 row.appendChild(td);
                 td.dataset.originalValue = data;
-
                 const fieldClass = getFieldClass(idx);
                 if (fieldClass) {
                     td.classList.add(`item-${fieldClass}`);
@@ -581,7 +586,7 @@
                     const originalValue = td.dataset.originalValue;
                     const input = document.createElement('input');
 
-                    if ([1, 8, 9, 10].includes(i)) {
+                    if ([1, 10, 11, 12].includes(i)) {
                         const span = document.createElement('span');
                         span.textContent = originalValue;
                         td.textContent = '';
@@ -602,15 +607,25 @@
                         },
                         availability: tds[4].querySelector('input')?.value || item.availability,
                         customFields: {
-                            "origem-do-material": tds[5].querySelector('input')?.value || item.customFields?.["origem-do-material"],
+                            "origem-do-material": {
+                                "external-ref-num": tds[5].querySelector('input')?.value || item.customFields?.["origem-do-material"]?.["external-ref-num"]
+                            },
                             ncm: tds[6].querySelector('input')?.value || item.customFields?.ncm,
-                            iva: tds[8].querySelector('input')?.value || item.customFields?.iva
+                            iva: {
+                                "external-ref-num": tds[7].querySelector('input')?.value || item.customFields?.iva?.["external-ref-num"]
+                            },
+                            "tipo-de-avaliacao": {
+                                "external-ref-num": tds[8].querySelector('input')?.value || item.customFields?.["tipo-de-avaliacao"]?.["external-ref-num"]
+                            },
+                            "numero-item-sap": {
+                                "external-ref-num": tds[9].querySelector('input')?.value || item.customFields?.["numero-item-sap"]?.["external-ref-num"]
+                            },
                         },
                         supplier: {
-                            name: tds[9].querySelector('input')?.value || item.supplier
+                            name: tds[11].querySelector('input')?.value || item.supplier
                         },
                         contract: {
-                            name: tds[10].querySelector('input')?.value || item.contract
+                            name: tds[12].querySelector('input')?.value || item.contract
                         }
                     };
 
@@ -641,7 +656,7 @@
     // Função auxiliar para determinar a classe do campo
     const getFieldClass = (index) => {
         const fieldClasses = [
-            '', 'itemName', 'price', 'currency', 'availability', 'ncm', 'iva', 'itemNumber', 'supplier', 'contract'
+            '', 'itemName', 'price', 'currency', 'availability', 'ncm', 'iva', 'tipoDeAvaliacao', 'numeroItemSap', 'itemNumber', 'supplier', 'contract'
         ];
         return fieldClasses[index] || ''; // Índice corrigido
     };
