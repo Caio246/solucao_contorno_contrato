@@ -376,6 +376,7 @@
 
     let globalContractName = '';
     let globalSupplierName = '';
+    let globalIdItem = '';
 
     // GERAR E RECEBER TOKEN
     const getToken = async () => {
@@ -414,13 +415,6 @@
                 customFields: {
                     origemDoMaterial: item["custom-fields"]?.["origem-do-material"]?.name ?? 'N/A',
                     ncmNumber: item["custom-fields"]?.ncm ?? 'N/A',
-                    iva: item["custom-fields"]?.iva.description ?? 'N/A',
-                    tipoDeAvaliacao: item["custom-fields"]?.['tipo-de-avaliacao'].name ?? 'N/A',
-                    empresaDoContrato: item["custom-fields"]?.['empresa-do-contrato'].name ?? 'N/A',
-                    mestreDeServico: item["custom-fields"]?.['mestre-de-servico'].name ?? 'N/A',
-                    numeroItemSap: item["custom-fields"]?.['numero-item-sap'].name ?? 'N/A',
-                    nomeItemSap: item["custom-fields"]?.caderno ?? 'N/A',
-                    conltroleConfirmacao: item["custom-fields"]?.['controle-confirmacao'] ?? false,
                 },
                 itemNumber: item.item?.id ?? 'N/A',
                 supplier: item.supplier?.name ?? 'N/A',
@@ -520,97 +514,13 @@
         }
     };
 
-    // Função updateItem refatorada para lidar com as entradas
-    const updateItem = async (itemId, inputRow) => {
-        const inputs = inputRow.querySelectorAll('input'); // Seleciona todos os inputs na linha
-
-        // Inicializa o objeto data com a estrutura correta do payload
-        const data = {
-            availability: null,
-            currency: { code: 'BRL' }, // Moeda padrão, pode ser alterado conforme necessário
-            "custom-fields": {
-                caderno: null,
-                "controle-confirmacao": null,
-                "mestre-de-servico": { "external-ref-code": null },
-                ncm: null,
-                "numero-item-sap": { "external-ref-num": null },
-                "tipo-de-avaliacao": { "external-ref-num": null },
-            },
-            itemNumber: { id: itemId }, // Preenche com o itemId recebido como parâmetro
-            price: null, // Irá receber o valor correto na iteração dos inputs
-        };
-
-        // Mapeia cada campo do input para preencher o payload com os valores correspondentes
-        inputs.forEach((input) => {
-            const className = input.classList[0];
-            const fieldName = className.replace('item-', ''); // Extrai o nome do campo da classe (ex. 'item-price' -> 'price')
-
-            // Mapeamento dos valores para os campos corretos no objeto data
-            switch (fieldName) {
-                case 'availability':
-                    data.availability = input.value;
-                    break;
-                case 'currency':
-                    data.currency.code = input.value || data.currency.code; // Define o código da moeda
-                    break;
-                case 'caderno':
-                    data["custom-fields"].caderno = input.value;
-                    break;
-                case 'controleDeConfirmacao':
-                    data["custom-fields"]["controle-confirmacao"] = input.value === 'true';
-                    break;
-                case 'mestreDeServico':
-                    data["custom-fields"]["mestre-de-servico"]["external-ref-code"] = input.value;
-                    break;
-                case 'ncm':
-                    data["custom-fields"].ncm = input.value;
-                    break;
-                case 'numeroItemSap':
-                    data["custom-fields"]["numero-item-sap"]["external-ref-num"] = input.value;
-                    break;
-                case 'tipoDeAvaliacao':
-                    data["custom-fields"]["tipo-de-avaliacao"]["external-ref-num"] = input.value;
-                    break;
-                case 'price':
-                    data.price = input.value || data.price; // Define o valor do preço, se disponível
-                    break;
-                default:
-                    console.warn(`Campo não mapeado: ${fieldName}`);
-            }
-        });
-
-        // Enviar os dados para a API
-        try {
-            const token = await getToken(); // Obtém o token de autenticação
-            const response = await axios.put(`https://equatorialenergia-test.coupahost.com/api/supplier_items/${itemId}`, data, {
-                headers: {
-                    Authorization: `Bearer ${token}`,
-                    Accept: 'application/json',
-                    'Content-Type': 'application/json'
-                }
-            });
-
-            if (response.status === 200) {
-                return response.data;
-            } else {
-                throw new Error('Erro ao atualizar o item. Status do código: ' + response.status);
-            }
-        } catch (error) {
-            console.error('Erro ao atualizar o item:', error.message);
-            throw error;
-        }
-
-    };
-
     // RENDERIZA A TABELA DO TBODY DE ACORDO COM OS DADOS DO CONTRACT ITEM
     const displayItems = (items) => {
         const itemList = document.getElementById('itemList');
         itemList.innerHTML = '';
 
         const headers = [
-            ' ', 'Nome do Item', 'Preço', 'Moeda', 'Origem do Material', 'Availability', 'NCM', 'IVA',
-            'Tipo de Avaliação', 'Empresa do Contrato', 'Mestre de Serviço', 'Número Item SAP',
-            'Nome Item SAP (caderno)', 'Controle Confirmação', 'Item number (Item ID)',
+            ' ', 'Nome do Item', 'Preço', 'Moeda', 'Disponibilidade', 'Origem do Material', 'NCM', 'IVA', 'Item number (Item ID)',
             'Fornecedor', 'Contract Name', 'Ações'
         ];
 
@@ -630,16 +540,10 @@
                 item.itemName ?? 'N/A',
                 item.price ?? 'N/A',
                 item.currency ?? 'N/A',
-                item.customFields?.origemDoMaterial ?? 'N/A',
                 item.availability ?? 'N/A',
+                item.customFields?.origemDoMaterial ?? 'N/A',
                 item.customFields?.ncm ?? 'N/A',
                 item.customFields?.iva ?? 'N/A',
-                item.customFields?.tipoDeAvaliacao ?? 'N/A',
-                item.customFields?.empresaDoContrato ?? 'N/A',
-                item.customFields?.mestreDeServico ?? 'N/A',
-                item.customFields?.numeroItemSap ?? 'N/A',
-                item.customFields?.nomeItemSap ?? 'N/A',
-                item.customFields?.controleDeConfirmacao ?? false,
                 item.itemNumber ?? 'N/A',
                 item.supplier ?? 'N/A',
                 item.contract ?? 'N/A'
@@ -666,38 +570,68 @@
             itemList.appendChild(row);
 
             editButton.addEventListener('click', () => {
+                editButton.style.display = 'none';
+
+                const saveButton = document.createElement('button');
+                saveButton.textContent = 'Salvar';
+                actionsTd.appendChild(saveButton);
+
                 const tds = row.querySelectorAll('td:not(:last-child)');
                 tds.forEach((td, i) => {
                     const originalValue = td.dataset.originalValue;
                     const input = document.createElement('input');
 
-                    switch (i) {
-                        case 1: // Nome do Item
-                        case 15: // Fornecedor
-                        case 16: // Contract Name
-                            const span = document.createElement('span');
-                            span.textContent = originalValue;
-                            td.textContent = '';
-                            td.appendChild(span);
-                            break;
-                        default:
-                            input.value = originalValue;
-                            input.classList.add(`item-${getFieldClass(i)}`);
-                            td.textContent = '';
-                            td.appendChild(input);
+                    if ([1, 8, 9, 10].includes(i)) {
+                        const span = document.createElement('span');
+                        span.textContent = originalValue;
+                        td.textContent = '';
+                        td.appendChild(span);
+                    } else {
+                        input.value = originalValue;
+                        input.classList.add(`item-${getFieldClass(i)}`);
+                        td.textContent = '';
+                        td.appendChild(input);
                     }
                 });
 
-                editButton.textContent = 'Salvar';
-                editButton.onclick = async () => {
+                saveButton.addEventListener('click', async () => {
+                    const updatedItem = {
+                        price: tds[2].querySelector('input')?.value || item.price,
+                        currency: {
+                            code: tds[3].querySelector('input')?.value || item.currency
+                        },
+                        availability: tds[4].querySelector('input')?.value || item.availability,
+                        customFields: {
+                            "origem-do-material": tds[5].querySelector('input')?.value || item.customFields?.["origem-do-material"],
+                            ncm: tds[6].querySelector('input')?.value || item.customFields?.ncm,
+                            iva: tds[8].querySelector('input')?.value || item.customFields?.iva
+                        },
+                        supplier: {
+                            name: tds[9].querySelector('input')?.value || item.supplier
+                        },
+                        contract: {
+                            name: tds[10].querySelector('input')?.value || item.contract
+                        }
+                    };
+
                     try {
-                        const updatedItem = await updateItem(item.itemNumber, row); // Passando os dados do input
+                        const token = await getToken();
+
+                        await axios.put(`https://equatorialenergia-test.coupahost.com/api/supplier_items/${item.itemNumber}`, updatedItem, {
+                            headers: {
+                                Authorization: `Bearer ${token}`,
+                                Accept: 'application/json',
+                                'Content-Type': 'application/json'
+                            }
+                        });
+
                         alert('Item atualizado com sucesso!');
-                        getItems(item.itemNumber); // Atualizar a lista de itens
+                        saveButton.style.display = 'none';
+                        editButton.style.display = 'inline';
                     } catch (error) {
-                        alert('Erro ao atualizar o item: ' + error.message);
+                        console.error('Erro ao atualizar o item:', error);
                     }
-                };
+                });
             });
         });
 
@@ -707,9 +641,7 @@
     // Função auxiliar para determinar a classe do campo
     const getFieldClass = (index) => {
         const fieldClasses = [
-            '', 'itemName', 'price', 'currency', 'origemDoMaterial', 'availability', 'ncm', 'iva',
-            'tipoDeAvaliacao', 'empresaDoContrato', 'mestreDeServico', 'numeroItemSap', 'caderno',
-            'controleDeConfirmacao', 'itemNumber', 'supplier', 'contract'
+            '', 'itemName', 'price', 'currency', 'availability', 'ncm', 'iva', 'itemNumber', 'supplier', 'contract'
         ];
         return fieldClasses[index] || ''; // Índice corrigido
     };
