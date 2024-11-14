@@ -413,13 +413,14 @@
                 currency: item.currency?.code ?? 'N/A',
                 availability: item.availability ?? 'N/A',
                 customFields: {
-                    origemDoMaterial: item["custom-fields"]?.["origem-do-material"]?.name ?? 'N/A',
+                    origemDoMaterial: item["custom-fields"]?.["origem-do-material"]?.["external-ref-num"] ?? 'N/A',
                     ncmNumber: item["custom-fields"]?.ncm ?? 'N/A',
-                    iva: item["custom-fields"]?.iva ?? 'N/A',
-                    tipoDeAvaliacao: item["custom-fields"]?.["tipo-de-avaliacao"]?.name ?? 'N/A',
+                    iva: item["custom-fields"]?.iva?.["external-ref-num"] ?? 'N/A',
+                    tipoDeAvaliacao: item["custom-fields"]?.["tipo-de-avaliacao"]?.["external-ref-num"] ?? 'N/A',
                     numeroItemSap: item["custom-fields"]?.["numero-item-sap"]?.["external-ref-num"] ?? 'N/A',
-                    nomeItemSap: item.customFields?.caderno ?? 'N/A',
-                    conltroreConfirmacao: item.customFields?.['controle-confirmacao'] ?? false,
+                    nomeItemSapCaderno: item["custom-fields"]?.caderno ?? 'N/A',
+                    mestreDeServicos: item["custom-fields"]?.["mestre-de-servico"]?.["external-ref-code"] ?? 'N/A',
+                    // conltroreConfirmacao: item.customFields?.['controle-confirmacao'] ?? false,
                 },
                 itemNumber: item.item?.id ?? 'N/A',
                 supplier: item.supplier?.name ?? 'N/A',
@@ -524,7 +525,7 @@
         itemList.innerHTML = '';
 
         const headers = [
-            ' ', 'Nome do Item', 'Preço', 'Moeda', 'Disponibilidade', 'Origem do Material', 'NCM', 'IVA', 'Tipo de Avaliação', 'Número Item SAP', 'Item number (Item ID)',
+            ' ', 'Nome do Item', 'Preço', 'Moeda', 'Disponibilidade', 'Origem do Material', 'NCM', 'IVA', 'Tipo de Avaliação', 'Número Item SAP', 'Nome Item Sap (Caderno)', 'Mestre de Serviços', 'Item number (Item ID)',
             'Fornecedor', 'Contract Name', 'Ações'
         ];
 
@@ -547,9 +548,11 @@
                 item.availability ?? 'N/A',
                 item.customFields?.origemDoMaterial ?? 'N/A',
                 item.customFields?.ncmNumber ?? 'N/A',
-                item.customFields?.iva.name ?? 'N/A',
+                item.customFields?.iva ?? 'N/A',
                 item.customFields?.tipoDeAvaliacao ?? 'N/A',
                 item.customFields?.numeroItemSap ?? 'N/A',
+                item.customFields?.nomeItemSapCaderno ?? 'N/A',
+                item.customFields?.mestreDeServicos ?? 'N/A',
                 item.itemNumber ?? 'N/A',
                 item.supplier ?? 'N/A',
                 item.contract ?? 'N/A'
@@ -586,7 +589,7 @@
                     const originalValue = td.dataset.originalValue;
                     const input = document.createElement('input');
 
-                    if ([1, 10, 11, 12].includes(i)) {
+                    if ([1, 12, 13, 14].includes(i)) {
                         const span = document.createElement('span');
                         span.textContent = originalValue;
                         td.textContent = '';
@@ -606,26 +609,30 @@
                             code: tds[3].querySelector('input')?.value || item.currency
                         },
                         availability: tds[4].querySelector('input')?.value || item.availability,
-                        customFields: {
+                        "custom-fields": {
                             "origem-do-material": {
-                                "external-ref-num": tds[5].querySelector('input')?.value || item.customFields?.["origem-do-material"]?.["external-ref-num"]
+                                "external-ref-num": tds[5].querySelector('input')?.value || item?.["custom-fields"]?.["origem-do-material"]?.["external-ref-num"]
                             },
-                            ncm: tds[6].querySelector('input')?.value || item.customFields?.ncm,
+                            ncm: tds[6].querySelector('input')?.value || item?.["custom-fields"]?.ncm,
                             iva: {
-                                "external-ref-num": tds[7].querySelector('input')?.value || item.customFields?.iva?.["external-ref-num"]
+                                "external-ref-num": tds[7].querySelector('input')?.value || item?.["custom-fields"]?.iva?.["external-ref-num"]
                             },
                             "tipo-de-avaliacao": {
-                                "external-ref-num": tds[8].querySelector('input')?.value || item.customFields?.["tipo-de-avaliacao"]?.["external-ref-num"]
+                                "external-ref-num": tds[8].querySelector('input')?.value || item?.["custom-fields"]?.["tipo-de-avaliacao"]?.["external-ref-num"]
                             },
                             "numero-item-sap": {
-                                "external-ref-num": tds[9].querySelector('input')?.value || item.customFields?.["numero-item-sap"]?.["external-ref-num"]
+                                "external-ref-num": tds[9].querySelector('input')?.value || item?.["custom-fields"]?.["numero-item-sap"]?.["external-ref-num"]
+                            },
+                            caderno: tds[10].querySelector('input')?.value || item?.["custom-fields"]?.caderno,
+                            "mestre-de-servico": {
+                                "external-ref-code": tds[11].querySelector('input')?.value || item?.["custom-fields"]?.["mestre-de-servico"]?.["external-ref-code"]
                             },
                         },
                         supplier: {
-                            name: tds[11].querySelector('input')?.value || item.supplier
+                            name: tds[13].querySelector('input')?.value || item.supplier
                         },
                         contract: {
-                            name: tds[12].querySelector('input')?.value || item.contract
+                            name: tds[14].querySelector('input')?.value || item.contract
                         }
                     };
 
@@ -656,7 +663,7 @@
     // Função auxiliar para determinar a classe do campo
     const getFieldClass = (index) => {
         const fieldClasses = [
-            '', 'itemName', 'price', 'currency', 'availability', 'ncm', 'iva', 'tipoDeAvaliacao', 'numeroItemSap', 'itemNumber', 'supplier', 'contract'
+            '', 'itemName', 'price', 'currency', 'availability', 'origemDoMaterial', 'ncm', 'iva', 'tipoDeAvaliacao', 'numeroItemSap', 'nomeItemSapCaderno', 'mestreDeServicos', 'itemNumber', 'supplier', 'contract'
         ];
         return fieldClasses[index] || ''; // Índice corrigido
     };
