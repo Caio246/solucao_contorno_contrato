@@ -420,7 +420,8 @@
                     numeroItemSap: item["custom-fields"]?.["numero-item-sap"]?.["external-ref-num"] ?? 'N/A',
                     nomeItemSapCaderno: item["custom-fields"]?.caderno ?? 'N/A',
                     mestreDeServicos: item["custom-fields"]?.["mestre-de-servico"]?.["external-ref-code"] ?? 'N/A',
-                    // conltroreConfirmacao: item.customFields?.['controle-confirmacao'] ?? false,
+                    conltroreConfirmacao: item["custom-fields"]?.['controle-confirmacao'] ?? false,
+                    empresaDoContrado: item["custom-fields"]?.["empresa-do-contrato"]?.["external-ref-num"] ?? 'N/A'
                 },
                 itemNumber: item.item?.id ?? 'N/A',
                 supplier: item.supplier?.name ?? 'N/A',
@@ -525,7 +526,7 @@
         itemList.innerHTML = '';
 
         const headers = [
-            ' ', 'Nome do Item', 'Preço', 'Moeda', 'Disponibilidade', 'Origem do Material', 'NCM', 'IVA', 'Tipo de Avaliação', 'Número Item SAP', 'Nome Item Sap (Caderno)', 'Mestre de Serviços', 'Item number (Item ID)',
+            ' ', 'Nome do Item', 'Preço', 'Moeda', 'Disponibilidade', 'Origem do Material', 'NCM', 'IVA', 'Tipo de Avaliação', 'Número Item SAP', 'Nome Item Sap (Caderno)', 'Mestre de Serviços', 'Controle de Confirmação', 'Empresa do Contrato', 'Item number (Item ID)',
             'Fornecedor', 'Contract Name', 'Ações'
         ];
 
@@ -553,6 +554,8 @@
                 item.customFields?.numeroItemSap ?? 'N/A',
                 item.customFields?.nomeItemSapCaderno ?? 'N/A',
                 item.customFields?.mestreDeServicos ?? 'N/A',
+                item.customFields?.conltroreConfirmacao ?? 'N/A',
+                item.customFields?.empresaDoContrado ?? 'N/A',
                 item.itemNumber ?? 'N/A',
                 item.supplier ?? 'N/A',
                 item.contract ?? 'N/A'
@@ -589,7 +592,7 @@
                     const originalValue = td.dataset.originalValue;
                     const input = document.createElement('input');
 
-                    if ([1, 12, 13, 14].includes(i)) {
+                    if ([1, 14, 15, 16].includes(i)) {
                         const span = document.createElement('span');
                         span.textContent = originalValue;
                         td.textContent = '';
@@ -627,12 +630,16 @@
                             "mestre-de-servico": {
                                 "external-ref-code": tds[11].querySelector('input')?.value || item?.["custom-fields"]?.["mestre-de-servico"]?.["external-ref-code"]
                             },
+                            "controle-confirmacao": tds[12].querySelector('input')?.value || item?.["custom-fields"]?.["controle-confirmacao"],
+                            "empresa-do-contrato": {
+                                "external-ref-num": tds[13].querySelector('input')?.value || item?.["custom-fields"]?.["empresa-do-contrato"]?.["external-ref-num"]
+                            },
                         },
                         supplier: {
-                            name: tds[13].querySelector('input')?.value || item.supplier
+                            name: tds[15].querySelector('input')?.value || item.supplier
                         },
                         contract: {
-                            name: tds[14].querySelector('input')?.value || item.contract
+                            name: tds[16].querySelector('input')?.value || item.contract
                         }
                     };
 
@@ -663,7 +670,7 @@
     // Função auxiliar para determinar a classe do campo
     const getFieldClass = (index) => {
         const fieldClasses = [
-            '', 'itemName', 'price', 'currency', 'availability', 'origemDoMaterial', 'ncm', 'iva', 'tipoDeAvaliacao', 'numeroItemSap', 'nomeItemSapCaderno', 'mestreDeServicos', 'itemNumber', 'supplier', 'contract'
+            '', 'itemName', 'price', 'currency', 'availability', 'origemDoMaterial', 'ncm', 'iva', 'tipoDeAvaliacao', 'numeroItemSap', 'nomeItemSapCaderno', 'mestreDeServicos', 'conltroreConfirmacao', 'empresaDoContrado', 'itemNumber', 'supplier', 'contract'
         ];
         return fieldClasses[index] || ''; // Índice corrigido
     };
