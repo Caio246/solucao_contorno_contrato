@@ -433,6 +433,7 @@
             });
 
             const filteredItems = response.data.map(item => ({
+                supplierId: item.id ?? 'N/A',
                 itemName: item.item?.name ?? 'N/A',
                 price: item.price ?? 'N/A',
                 currency: item.currency?.code ?? 'N/A',
@@ -547,7 +548,7 @@
         itemList.innerHTML = '';
 
         const headers = [
-            'Índice', 'Nome do Item', 'Preço', 'Moeda', 'Disponibilidade', 'Origem do Material', 'NCM', 'IVA',
+            'Id do Fornecedor', 'Nome do Item', 'Preço', 'Moeda', 'Disponibilidade', 'Origem do Material', 'NCM', 'IVA',
             'Tipo de Avaliação', 'Número Item SAP', 'Nome Item Sap (Caderno)',
             'Mestre de Serviços', 'Controle de Confirmação', 'Empresa do Contrato',
             'Item number (Item ID)', 'Fornecedor', 'Contract Name', 'Ações'
@@ -565,7 +566,7 @@
             const row = document.createElement('tr');
 
             const cellData = [
-                index + 1,
+                item.supplierId ?? 'N/A',
                 item.itemName ?? 'N/A',
                 item.price ?? 'N/A',
                 item.currency ?? 'N/A',
@@ -599,8 +600,8 @@
             const actionsTd = document.createElement('td');
             const editButton = document.createElement('button');
             editButton.textContent = 'Editar';
-            editButton.style.backgroundColor = '#268ecd'; // Cor de fundo (verde)
-            editButton.style.color = 'white';            // Cor do texto
+            editButton.style.backgroundColor = '#268ecd';
+            editButton.style.color = 'white';
             editButton.style.cursor = 'pointer';
 
             actionsTd.appendChild(editButton);
@@ -613,8 +614,8 @@
 
                 const saveButton = document.createElement('button');
                 saveButton.textContent = 'Salvar';
-                saveButton.style.backgroundColor = '#24ca1d'; // Cor de fundo (verde)
-                saveButton.style.color = 'white';            // Cor do texto
+                saveButton.style.backgroundColor = '#24ca1d';
+                saveButton.style.color = 'white';
                 saveButton.style.cursor = 'pointer';
 
                 actionsTd.appendChild(saveButton);
@@ -624,7 +625,7 @@
                     const originalValue = td.dataset.originalValue;
                     const input = document.createElement('input');
 
-                    if ([1, 14, 15, 16].includes(i)) {
+                    if ([0, 1, 14, 15, 16].includes(i)) {
                         const span = document.createElement('span');
                         span.textContent = originalValue;
                         td.textContent = '';
@@ -639,6 +640,7 @@
 
                 saveButton.addEventListener('click', async () => {
                     const updatedItem = {
+                        id: Number(tds[0].querySelector('input')?.value) || item.supplierId,
                         price: tds[2].querySelector('input')?.value || item.price,
                         currency: {
                             code: tds[3].querySelector('input')?.value || item.currency
@@ -667,6 +669,9 @@
                                 "external-ref-num": tds[13].querySelector('input')?.value || item?.["custom-fields"]?.["empresa-do-contrato"]?.["external-ref-num"]
                             },
                         },
+                        item: {
+                            id: tds[14].querySelector('input')?.value || item.itemNumber
+                        },
                         supplier: {
                             name: tds[15].querySelector('input')?.value || item.supplier
                         },
@@ -678,8 +683,8 @@
                     try {
                         const token = await getToken();
 
-                        await axios.put(
-                            `https://equatorialenergia-test.coupahost.com/api/supplier_items/${item.itemNumber}`,
+                        await axios.patch(
+                            `https://equatorialenergia-test.coupahost.com/api/supplier_items/${item.supplierId}`,
                             updatedItem,
                             {
                                 headers: {
@@ -714,9 +719,9 @@
     // Função auxiliar para determinar a classe do campo
     const getFieldClass = (index) => {
         const fieldClasses = [
-            '', 'itemName', 'price', 'currency', 'availability', 'origemDoMaterial', 'ncm', 'iva', 'tipoDeAvaliacao', 'numeroItemSap', 'nomeItemSapCaderno', 'mestreDeServicos', 'conltroreConfirmacao', 'empresaDoContrado', 'itemNumber', 'supplier', 'contract'
+            'supplierId','itemName', 'price', 'currency', 'availability', 'origemDoMaterial', 'ncm', 'iva', 'tipoDeAvaliacao', 'numeroItemSap', 'nomeItemSapCaderno', 'mestreDeServicos', 'conltroreConfirmacao', 'empresaDoContrado', 'itemNumber', 'supplier', 'contract'
         ];
-        return fieldClasses[index] || ''; // Índice corrigido
+        return fieldClasses[index] || '';
     };
 
     // BOTÃO QUE CRIA INPUT NA TABELA
